@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cricket Scorer — Live match tracker for runs, overs, sixes and wickets">
+  <title>Cricket Scorer</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <h1>Cricket Scorer</h1>
+  <p>Live Match Tracker</p>
+</header>
+
+<!-- ── Setup Screen ── -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <h2>New Match</h2>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="team1">Team 1</label>
+        <input id="team1" type="text" placeholder="e.g. India" maxlength="18">
+      </div>
+      <div class="field-group">
+        <label for="team2">Team 2</label>
+        <input id="team2" type="text" placeholder="e.g. Australia" maxlength="18">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="maxOvers">Overs</label>
+        <input id="maxOvers" type="number" value="20" min="1" max="50">
+      </div>
+      <div class="field-group">
+        <label for="maxWickets">Wickets (max)</label>
+        <input id="maxWickets" type="number" value="10" min="1" max="10">
+      </div>
+    </div>
+    <button class="start-btn" onclick="startMatch()">Start Match</button>
+  </div>
+</div>
+
+<!-- ── Scorer Screen ── -->
+<div id="scorer-screen">
+
+  <!-- Target Banner (2nd innings) -->
+  <div class="target-banner" id="targetBanner">
+    <div>
+      <div class="tb-text">Target</div>
+      <div class="tb-num" id="targetNum">—</div>
+    </div>
+    <div style="text-align:right">
+      <div class="tb-rrr">RRR: <span id="rrrVal">—</span></div>
+      <div class="tb-rrr">Need <span id="reqRuns">—</span> in <span id="reqBalls">—</span> balls</div>
+    </div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard" id="scoreboard">
+    <div class="innings-tabs">
+      <div class="innings-tab active" id="tab0" onclick="switchView(0)">
+        <div class="tab-team" id="tabTeam0">—</div>
+        <div class="tab-score" id="tabScore0">0/0</div>
+      </div>
+      <div class="innings-tab" id="tab1" onclick="switchView(1)">
+        <div class="tab-team" id="tabTeam1">—</div>
+        <div class="tab-score" id="tabScore1">—</div>
+      </div>
+    </div>
+
+    <div class="live-score-row">
+      <div class="live-runs" id="liveRuns">0</div>
+      <div class="live-wickets" id="liveWickets">/0</div>
+      <div class="live-team">
+        <small id="liveLabel">Batting</small>
+        <div id="liveBatting">—</div>
+      </div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-pill">
+        <span class="sp-label">Overs</span>
+        <span class="sp-val" id="liveOvers">0.0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-label">CRR</span>
+        <span class="sp-val" id="liveCRR">0.00</span>
+      </div>
+      <div class="stat-pill sixes">
+        <span class="sp-label">6s</span>
+        <span class="sp-val" id="liveSixes">0</span>
+      </div>
+      <div class="stat-pill fours">
+        <span class="sp-label">4s</span>
+        <span class="sp-val" id="liveFours">0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-label">Extras</span>
+        <span class="sp-val" id="liveExtras">0</span>
+      </div>
+    </div>
+
+    <div class="over-row">
+      <span class="over-label">This over:</span>
+      <div id="overBalls"></div>
+    </div>
+  </div>
+
+  <!-- Run Buttons -->
+  <div class="scoring-section">
+    <div class="section-label">Runs Scored</div>
+    <div class="run-btns">
+      <button class="run-btn r0" onclick="addRun(0)">0</button>
+      <button class="run-btn r1" onclick="addRun(1)">1</button>
+      <button class="run-btn r2" onclick="addRun(2)">2</button>
+      <button class="run-btn r3" onclick="addRun(3)">3</button>
+      <button class="run-btn r4" onclick="addRun(4)">4</button>
+      <button class="run-btn r5" onclick="addRun(5)">5</button>
+      <button class="run-btn r6" onclick="addRun(6)">6</button>
+    </div>
+    <div class="section-label">Extras &amp; Events</div>
+    <div class="extra-btns">
+      <button class="extra-btn wide"   onclick="addExtra('WD')">Wide (+1)</button>
+      <button class="extra-btn noball" onclick="addExtra('NB')">No Ball (+1)</button>
+      <button class="extra-btn wicket" onclick="addWicket()">Wicket 🏏</button>
+    </div>
+  </div>
+
+  <!-- Commentary -->
+  <div class="scoring-section">
+    <div class="section-label">Ball-by-Ball</div>
+    <div class="commentary" id="commentaryLog">
+      <div class="commentary-item">
+        <span class="ci-over">—</span>
+        <span class="ci-text">Match started. Begin scoring!</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-btns">
+    <button class="action-btn undo"        onclick="undoLast()">↩ Undo</button>
+    <button class="action-btn next-innings" id="nextInningsBtn" onclick="startSecondInnings()">2nd Innings →</button>
+    <button class="action-btn new-match"   id="newMatchBtn"    onclick="resetMatch()">New Match</button>
+  </div>
+
+</div><!-- /scorer-screen -->
+
+<!-- ── Result Overlay ── -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="result-trophy">🏆</div>
+    <div class="result-title">Match Result</div>
+    <div class="result-winner" id="resultWinner">—</div>
+    <div class="result-margin" id="resultMargin">—</div>
+    <div class="result-scores">
+      <div class="rs-block">
+        <div class="rs-team"  id="rsTeam0">—</div>
+        <div class="rs-score" id="rsScore0">—</div>
+      </div>
+      <div class="rs-block">
+        <div class="rs-team"  id="rsTeam1">—</div>
+        <div class="rs-score" id="rsScore1">—</div>
+      </div>
+    </div>
+    <button class="result-close" onclick="resetMatch()">New Match</button>
+  </div>
+</div>
+
+<script src="js/scorer.js"></script>
+</body>
+</html>
